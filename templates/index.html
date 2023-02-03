@@ -5,14 +5,11 @@
   </head>
   <body>
     <h1>Flask-Sock Demo</h1>
-    <p>Type <b>close</b> to end the connection.</p>
+    <p>Hit <b>close</b> to end the connection.</p>
     <span id="clock"></span>
     <div id="log"></div>
     <br>
-    <form id="form">
-      <label for="text">Input: </label>
-      <input type="text" id="text" autofocus>
-    </form>
+    <input type="button" id="close" value="close">
     <script>
       const log = (text, color) => {
         document.getElementById('log').innerHTML += `<span style="color: ${color}">${text}</span><br>`;
@@ -30,13 +27,12 @@
       socket.addEventListener('close', ev => {
         log('<<< closed');
       });
-      document.getElementById('form').onsubmit = ev => {
+      document.getElementById('close').onclick = (function(ev) {
         ev.preventDefault();
-        const textField = document.getElementById('text');
-        log('>>> ' + textField.value, 'red');
-        socket.send(textField.value);
-        textField.value = '';
-      };
+        log('>>> Closing' , 'red');
+        socket.send("close");
+        ev.target.disabled = true;
+      });
     </script>
   </body>
 </html>
