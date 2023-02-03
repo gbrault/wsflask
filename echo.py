@@ -9,28 +9,35 @@ app.config['SOCK_SERVER_OPTIONS'] = {'ping_interval': 25}
 
 sock = Sock(app)
 
+listners = {}
+
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-def send_time(ws):
+def send_time():
     while True:
         time.sleep(1)
-        try:
-            ws.send(json.dumps({"type": "clock", "text": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
-        except:
-            break
+        keys = list(listners.keys())
+        for key in keys:
+            try:
+                listners[key].send(json.dumps({"type": "clock", "text": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}))
+            except:
+                del listners[key]
 
 @sock.route('/echo')
 def echo(ws):
-    t = threading.Thread(target=send_time,args=(ws,))
-    t.start()
+    key = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    listners[key] = ws
     while True:
         data = ws.receive()
         if data == 'close':
             break
         ws.send(json.dumps({"type": "log", "text": data}))
+
+t = threading.Thread(target=send_time,args=())
+t.start()
 
 if __name__ == '__main__':
     app.run()
